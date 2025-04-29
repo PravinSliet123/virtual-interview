@@ -3,14 +3,20 @@ import { Mic, PhoneOff } from "lucide-react";
 import Vapi from "@vapi-ai/web";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Alert from "@/app/(main)/_component/Alert";
+import { useInterview } from "@/context/useInterview";
+import Countdown from "react-countdown";
+import { toast } from "sonner";
 export default function InterviewRoom() {
   const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY);
+  const router = useRouter()
   const [userName, setUserName] = useState("John Doe");
   const [jobPosition, setJobPosition] = useState("React Developer");
   const [questionList, setQuestionList] = useState();
+  const [interviewDetail, setInterviewDetail] = useState();
   const [openModal, setOpenModal] = useState(false);
+  const { name } = useInterview((state) => state);
   const { id } = useParams();
   const getAllInterviews = () => {
     try {
@@ -18,8 +24,10 @@ export default function InterviewRoom() {
         method: "GET",
         url: `/api/interview/${id}`,
       }).then((resp) => {
+        console.log("resp: ", resp.data);
         setQuestionList(resp?.data.data?.questions);
-        setJobPosition(resp?.data?.data?.jobPosition)
+        setJobPosition(resp?.data?.data?.jobPosition);
+        setInterviewDetail(resp.data?.data);
       });
     } catch (error) {
       toast.error(error?.response?.data?.message);
@@ -29,8 +37,8 @@ export default function InterviewRoom() {
     id && getAllInterviews();
   }, [id]);
   useEffect(() => {
-    questionList && startCall();
-  }, []);
+    // questionList && startCall();
+  }, [questionList]);
 
   const startCall = () => {
     let interviewQuestion = "";
@@ -41,7 +49,7 @@ export default function InterviewRoom() {
       name: "AI Recruiter",
       firstMessage:
         "Hi " +
-        userName +
+        name +
         " , how are you? Ready for your interview on " +
         jobPosition +
         "?",
@@ -92,7 +100,6 @@ export default function InterviewRoom() {
   };
 
   const handleEndCall = () => {
-    console.log("vapi: ", vapi);
     setOpenModal(true);
     vapi.stop();
   };
@@ -103,7 +110,24 @@ export default function InterviewRoom() {
         <h2 className="text-lg font-semibold text-primary">
           AI Interview Session
         </h2>
-        <div className="text-sm font-mono text-primary">⏱ 00:05:23</div>
+        {interviewDetail && (
+          <div className="text-sm font-mono text-primary">
+            ⏱
+            {
+              <Countdown
+                onComplete={() => {
+                  toast.success("Timeout, Interview submited")
+                  vapi.stop()
+                  router.push("/dashboard")
+                }}
+                key={interviewDetail?.duration}
+                date={
+                  Date.now() + Number(interviewDetail?.duration) * 1000 * 60
+                }
+              />
+            }
+          </div>
+        )}
       </div>
 
       {/* Video Section */}
@@ -113,20 +137,20 @@ export default function InterviewRoom() {
           <div className=" size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full">
             <p className=" text-xl">AI</p>
           </div>
-          <span className="mt-2 text-sm text-primary">You</span>
+          <span className="mt-2 text-sm text-primary">Ai Assistant</span>
         </div>
 
         {/* You */}
         <div className=" flex-col border shadow  h-[300px] flex items-center justify-center w-[400px] rounded-md ">
           <div className=" size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full">
-            <p className=" text-xl">P</p>
+            <p className=" text-xl">{name?.split("")?.[0]}</p>
           </div>
           <span className="mt-2 text-sm text-primary">You</span>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex flex-col items-center pb-8">
+      <div className="flex flex-col items-center mt-4 pb-8">
         <div className="flex gap-6 mb-4">
           <button className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center hover:bg-gray-600">
             <Mic size={20} />

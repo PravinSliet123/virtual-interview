@@ -16,7 +16,7 @@ export default async function Navbar() {
   return (
     <header className="flex w-full justify-between bg-white rounded-md items-center p-4 border-b shadow-sm">
       <div>
-        <h2 className="text-lg font-semibold">Welcome back, Sarah!</h2>
+        <h2 className="text-lg font-semibold">Welcome back, {user.firstName}</h2>
         <p className="text-sm text-muted-foreground">
           AI-Driven Interviews, Hassle-Free Hiring
         </p>

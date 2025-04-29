@@ -1,11 +1,20 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, PhoneCall, Copy, Send, Facebook, Circle } from "lucide-react";
+import {
+  Video,
+  PhoneCall,
+  Copy,
+  Send,
+  Facebook,
+  Circle,
+  Watch,
+} from "lucide-react";
 // import SaveUser from "./_component/SaveUser";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import Link from "next/link";
 export default function Dashboard() {
   const [interviews, setInterviews] = useState([]);
 
@@ -86,7 +95,9 @@ export default function Dashboard() {
                     <Button
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          window.location.host + "/interview/" + item?.interviewId
+                          window.location.host +
+                            "/interview/" +
+                            item?.interviewId
                         );
                         toast.success("Link copied successfully");
                       }}
@@ -96,9 +107,12 @@ export default function Dashboard() {
                     >
                       <Copy className="w-4 h-4" /> Copy Link
                     </Button>
-                    <Button size="sm" className="gap-1">
-                      <Send className="w-4 h-4" /> Send
-                    </Button>
+                    <Link className="  cursor-pointer" href={`/interview/${item?.interviewId}`}>
+                      {" "}
+                      <Button size="sm" className="gap-1 cursor-pointer">
+                        <Watch className="w-4 h-4" /> Start
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

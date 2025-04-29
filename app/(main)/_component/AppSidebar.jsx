@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 // Menu items.
 const items = [
@@ -31,12 +32,14 @@ const items = [
 
 export function AppSidebar() {
     const  pathname = usePathname() 
-    console.log('pathname: ', pathname);
+    
   return (
     <Sidebar  >
       <SidebarContent >
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          {/* <SidebarGroupLabel> */}
+            <Image src={'/Interview.png'} height={80} className=" mix-blend-multiply mx-auto " width={80} />
+          {/* </SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu >
              <Link href={"/create-interview"}> <Button className={"w-full my-4 cursor-pointer"}>Create New Interview</Button></Link>

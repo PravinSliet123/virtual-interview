@@ -3,7 +3,7 @@ import { SignUp } from "@clerk/nextjs";
 export default function Page() {
   return (
     <div className=" flex justify-center items-center w-screen">
-        <SignUp />
+        <SignUp fallback="/dashboard" />
     </div>
   );
 }
