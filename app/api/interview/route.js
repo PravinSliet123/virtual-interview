@@ -23,7 +23,7 @@ export const GET = async (req) => {
       messsage: "Interviews fetched successfully",
     });
   } catch (error) {
-    console.log('error: ', error);
+    //console.log('error: ', error);
     return NextResponse.json({ messsage: error }, { status: 500 });
   }
 };
@@ -37,7 +37,7 @@ export const POST = async (req) => {
       },
     });
     
-    console.log('loggedInUser: ', loggedInUser);
+    //console.log('loggedInUser: ', loggedInUser);
     
     const interviews = await prisma.interviews.create({
       data: { ...payload, userId: loggedInUser.id },
@@ -48,7 +48,7 @@ export const POST = async (req) => {
       messsage: "Interviews fetched successfully",
     });
   } catch (error) {
-    console.log('error: ', error);
+    //console.log('error: ', error);
     
     return NextResponse.json({ messsage: error }, { status: 500 });
   }

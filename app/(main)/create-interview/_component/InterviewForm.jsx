@@ -36,8 +36,6 @@ const validationSchema = Yup.object({
 
 export default function InterviewForm({
   handleGenerate,
-  toggleType,
-  selectedTypes,
   loading,
   setFormData,
   formData,
@@ -47,7 +45,7 @@ export default function InterviewForm({
   useEffect(() => {
     // This effect can be used if formData or selectedTypes change outside Formik
     // and you want to reset Formik values accordingly.
-  }, [formData, selectedTypes]);
+  }, [formData]);
 
   return (
     <Formik
@@ -56,12 +54,12 @@ export default function InterviewForm({
         jobPosition: formData.jobPosition || "",
         jobDescription: formData.jobDescription || "",
         duration: formData.duration || "15",
-        selectedTypes: selectedTypes || [],
+        selectedTypes: formData.selectedTypes || [],
       }}
       validationSchema={validationSchema}
       onSubmit={(values) => {
         setFormData(values);
-        handleGenerate();
+        handleGenerate(values);
       }}
     >
       {({ values, setFieldValue }) => (
@@ -73,7 +71,6 @@ export default function InterviewForm({
               {({ field }) => (
                 <Input
                   {...field}
-                
                   placeholder="e.g. Senior Frontend Developer"
                 />
               )}
@@ -139,7 +136,7 @@ export default function InterviewForm({
                     variant={isSelected ? "default" : "outline"}
                     className="cursor-pointer"
                     onClick={(e) => {
-                      e.preventDefault()
+                      e.preventDefault();
                       let newSelectedTypes;
                       if (isSelected) {
                         newSelectedTypes = values.selectedTypes.filter(
@@ -149,7 +146,6 @@ export default function InterviewForm({
                         newSelectedTypes = [...values.selectedTypes, type.value];
                       }
                       setFieldValue("selectedTypes", newSelectedTypes);
-                      toggleType(type.value);
                     }}
                   >
                     {type.label}

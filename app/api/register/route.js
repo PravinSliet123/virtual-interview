@@ -10,14 +10,14 @@ export const POST = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt(saltRounds);
     const hash = await bcrypt.hash(data?.password, salt);
-    console.log("hash: ", hash);
+    //console.log("hash: ", hash);
 
     const isExist = await prisma.user.findUnique({
       where: {
         email: data?.email,
       },
     });
-    console.log("isExist: ", isExist);
+    //console.log("isExist: ", isExist);
     if (isExist) {
       const token = jwt.sign(
         { email: isExist?.email, userId: isExist?.userId },

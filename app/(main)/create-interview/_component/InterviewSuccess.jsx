@@ -87,7 +87,8 @@ export default function InterviewSuccess({ interview }) {
       {/* Footer Buttons */}
       <div className="flex justify-between pt-4 border-t">
         <Link href={"/dashboard"}><Button variant="outline">← Back to Dashboard</Button></Link>
-        <Button>Create New Interview</Button>
+        <Link href={"/create-interview"}>  <Button>Create New Interview</Button></Link>
+      
       </div>
     </div>
   );

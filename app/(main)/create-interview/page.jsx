@@ -26,74 +26,57 @@ const interviewTypes = [
 ];
 function CreateInterview() {
   const [step, setStep] = useState(1);
-  const [selectedTypes, setSelectedTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [questionList, setQuestionList] = useState([]);
   const [interview, setInterview] = useState({});
-  console.log("questionList: ", questionList);
   const [formData, setFormData] = useState({
     jobPosition: "",
     jobDescription: "",
     duration: "",
-    type: [],
+    selectedTypes: [],
   });
-  const toggleType = (type) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
-  };
 
-  const handleGenerate = () => {
-    try {
-      setLoading(true);
-      axios({
-        method: "POST",
-        url: "/api/generateInterview",
-        data: {
-          jobPosition: formData.jobPosition,
-          jobDescription: formData.jobDescription,
-          duration: formData.duration,
-          type: selectedTypes,
-        },
-      })
-        .then((res) => {
-          const FINAL_JSON = res.data.content
-            .replace("```json", "")
-            .replace("```", "");
-          console.log("FINAL_JSON: ", JSON.parse(FINAL_JSON).interviewQuestions);
-          setQuestionList(FINAL_JSON);
-
-          axios({
-            url: "api/interview",
-            method: "POST",
-            data: {
-              questions: JSON.parse(FINAL_JSON).interviewQuestions,
-              duration: formData.duration,
-              jobPosition: formData.jobPosition,
-              jobDescription: formData.jobDescription,
-              interviewTypes: selectedTypes,
-            },
-          }).then((res) => {
-            console.log("res: ", res);
-            setInterview(res.data?.data);
-            setStep(step + 1);
-            setLoading(false);
-          });
-        })
-        .catch((err) => {
-          console.log("err: ", err);
-          toast.error("Sever Errro");
+  const handleGenerate = (values) => {
+    setLoading(true);
+    setFormData(values); // update formData with all values from Formik
+    axios({
+      method: "POST",
+      url: "/api/generateInterview",
+      data: {
+        jobPosition: values.jobPosition,
+        jobDescription: values.jobDescription,
+        duration: values.duration,
+        type: values.selectedTypes,
+      },
+    })
+      .then((res) => {
+        const FINAL_JSON = res.data.content
+          .replace("```json", "")
+          .replace("```", "");
+        setQuestionList(FINAL_JSON);
+        axios({
+          url: "api/interview",
+          method: "POST",
+          data: {
+            questions: JSON.parse(FINAL_JSON).interviewQuestions,
+            duration: values.duration,
+            jobPosition: values.jobPosition,
+            jobDescription: values.jobDescription,
+            interviewTypes: values.selectedTypes,
+          },
+        }).then((res) => {
+          setInterview(res.data?.data);
+          setStep(step + 1);
           setLoading(false);
-        })
-    } catch (error) {
-      setLoading(false);
-    }
+        });
+      })
+      .catch((err) => {
+        toast.error("Server Error");
+        setLoading(false);
+      });
   };
   return (
-    <div
-      className=" flex justify-center  mx-auto 
-      "
-    >
+    <div className=" flex justify-center  mx-auto ">
       <div className="  w-full max-w-[60%]  border rounded-md  p-4 ">
         <Progress className={" w-full "} value={step * 33.333} />
         {step == 1 ? (
@@ -102,8 +85,6 @@ function CreateInterview() {
             formData={formData}
             loading={loading}
             setLoading={setLoading}
-            selectedTypes={selectedTypes}
-            toggleType={toggleType}
             handleGenerate={handleGenerate}
           />
         ) : (

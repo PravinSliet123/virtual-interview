@@ -80,7 +80,7 @@ export default function Interview() {
   };
 
   const handleEndCall = () => {
-    console.log('vapi: ', vapi);
+    //console.log('vapi: ', vapi);
     setOpenModal(true);
     vapi.stop();
   };

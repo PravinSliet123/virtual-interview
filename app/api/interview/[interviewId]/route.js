@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export const GET = async (req, { params }) => {
   const { interviewId } = params;
-  console.log('interviewId: ', interviewId);
+  //console.log('interviewId: ', interviewId);
 
   try {
     const interviews = await prisma.interviews.findFirst({
@@ -12,14 +12,14 @@ export const GET = async (req, { params }) => {
         id: interviewId,
         },
     });
-    console.log('interviews: ', interviews);
+    //console.log('interviews: ', interviews);
 
     return NextResponse.json({
       data: interviews,
       messsage: "Interviews fetched successfully",
     });
   } catch (error) {
-    console.log('error: ', error);
+    //console.log('error: ', error);
     return NextResponse.json({ messsage: error }, { status: 500 });
   }
 };
@@ -50,7 +50,7 @@ export const DELETE = async (req, { params }) => {
     });
     return NextResponse.json({ message: "Interview deleted successfully" });
   } catch (error) {
-    console.log('error: ', error);
+    //console.log('error: ', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 };

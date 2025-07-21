@@ -23,14 +23,14 @@ export const POST = async (req, res) => {
         data?.password,
         isExist?.password
       );
-      console.log("isPasswordMatch: ", isPasswordMatch);
+      //console.log("isPasswordMatch: ", isPasswordMatch);
 
       if (!isPasswordMatch)
         return Response.json(
           { message: "unauthorised access" },
           { status: 401 }
         );
-      console.log("isExist: ", isExist);
+      //console.log("isExist: ", isExist);
       const token = jwt.sign(
         { email: isExist?.email, userId: isExist?.userId },
         process.env.NEXT_PUBLIC_JWT_SECRET,

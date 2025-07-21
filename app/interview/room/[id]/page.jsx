@@ -49,7 +49,7 @@ export default function InterviewRoom() {
         method: "GET",
         url: `/api/interview/${id}`,
       }).then((resp) => {
-        console.log("resp: ", resp.data);
+        //console.log("resp: ", resp.data);
         setQuestionList(resp?.data.data?.questions);
         setJobPosition(resp?.data?.data?.jobPosition);
         setInterviewDetail(resp.data?.data);
@@ -81,9 +81,9 @@ export default function InterviewRoom() {
     }
     return () => {
       if (vapi) {
-        vapi.off("transcription");
-        vapi.off("message");
-        vapi.off("end");
+        // vapi.off("transcription");
+        // vapi.off("message");
+        // vapi.off("end");
       }
     };
   }, []);
