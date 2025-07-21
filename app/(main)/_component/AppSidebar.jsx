@@ -23,11 +23,11 @@ const items = [
     url: "/dashboard",
     icon: Home,
   },
-  {
-    title: "All Interview",
-    url: "/all-interview",
-    icon: Inbox,
-  },
+  // {
+  //   title: "All Interview",
+  //   url: "/all-interview",
+  //   icon: Inbox,
+  // },
 ];
 
 export function AppSidebar() {

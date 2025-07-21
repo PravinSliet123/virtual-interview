@@ -1,21 +1,46 @@
 "use client";
 import { Mic, PhoneOff } from "lucide-react";
 import Vapi from "@vapi-ai/web";
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Alert from "@/app/(main)/_component/Alert";
 import { useInterview } from "@/context/useInterview";
 import Countdown from "react-countdown";
 import { toast } from "sonner";
+
+// Add Modal for time up
+function TimeUpModal({ open, onClose }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+      <div className="bg-white p-8 rounded shadow text-center">
+        <h2 className="text-xl font-bold mb-2 text-primary">Time's up!</h2>
+        <p className="mb-4 text-gray-700">The interview has ended.</p>
+        <button
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
+          onClick={onClose}
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function InterviewRoom() {
-  const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY);
-  const router = useRouter()
+  const vapiRef = useRef(null);
+  const containerRef = useRef(null);
+  const router = useRouter();
   const [userName, setUserName] = useState("John Doe");
   const [jobPosition, setJobPosition] = useState("React Developer");
   const [questionList, setQuestionList] = useState();
   const [interviewDetail, setInterviewDetail] = useState();
   const [openModal, setOpenModal] = useState(false);
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+  const [aiSpeaking, setAiSpeaking] = useState(false);
+  const [userSpeaking, setUserSpeaking] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const { name } = useInterview((state) => state);
   const { id } = useParams();
   const getAllInterviews = () => {
@@ -34,10 +59,39 @@ export default function InterviewRoom() {
     }
   };
   useEffect(() => {
+    if (!vapiRef.current) {
+      vapiRef.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY);
+    }
+    // Add Vapi event listeners for speaking state
+    const vapi = vapiRef.current;
+    if (vapi) {
+      vapi.on("transcription", (data) => {
+        // User is speaking when transcription is active
+        setUserSpeaking(!!data?.transcript);
+      });
+      vapi.on("message", (data) => {
+        // AI is speaking when message is sent
+        setAiSpeaking(true);
+        setTimeout(() => setAiSpeaking(false), 2000); // Reset after 2s (approximate)
+      });
+      vapi.on("end", () => {
+        setAiSpeaking(false);
+        setUserSpeaking(false);
+      });
+    }
+    return () => {
+      if (vapi) {
+        vapi.off("transcription");
+        vapi.off("message");
+        vapi.off("end");
+      }
+    };
+  }, []);
+  useEffect(() => {
     id && getAllInterviews();
   }, [id]);
   useEffect(() => {
-    // questionList && startCall();
+    questionList && startCall();
   }, [questionList]);
 
   const startCall = () => {
@@ -96,34 +150,76 @@ export default function InterviewRoom() {
       },
     };
 
-    vapi.start(assistantOptions);
+    vapiRef.current?.start(assistantOptions);
   };
 
   const handleEndCall = () => {
     setOpenModal(true);
-    vapi.stop();
+    setAiSpeaking(false);
+    setUserSpeaking(false);
+    vapiRef.current?.stop();
   };
+
+  // Fullscreen logic
+  const handleFullScreen = () => {
+    if (!isFullScreen) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen();
+      } else if (containerRef.current.webkitRequestFullscreen) {
+        containerRef.current.webkitRequestFullscreen();
+      } else if (containerRef.current.msRequestFullscreen) {
+        containerRef.current.msRequestFullscreen();
+      }
+      setIsFullScreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+      setIsFullScreen(false);
+    }
+  };
+
+  // Handle time up
+  const handleTimeUp = () => {
+    setShowTimeUpModal(true);
+    vapiRef.current?.stop();
+    setAiSpeaking(false);
+    setUserSpeaking(false);
+    setTimeout(() => {
+      setShowTimeUpModal(false);
+      router.push("/dashboard");
+    }, 2000);
+  };
+
   return (
-    <div className="bg-white text-white flex flex-col  justify-center items-center ">
+    <div
+      ref={containerRef}
+      className="bg-white text-white flex flex-col justify-center items-center min-h-screen relative"
+    >
+      {/* Fullscreen Button */}
+      <button
+        onClick={handleFullScreen}
+        className="absolute top-4 right-4 z-20 px-3 py-1 bg-primary text-white rounded shadow hover:bg-primary/80"
+      >
+        {isFullScreen ? "Exit Full Screen" : "Full Screen"}
+      </button>
+      {/* Time Up Modal */}
+      <TimeUpModal open={showTimeUpModal} onClose={() => router.push("/dashboard")} />
       {/* Header */}
-      <div className="flex justify-between items-center p-4">
-        <h2 className="text-lg font-semibold text-primary">
-          AI Interview Session
-        </h2>
+      <div className="flex justify-between items-center p-4 w-full max-w-4xl">
+        <h2 className="text-lg font-semibold text-primary">AI Interview Session</h2>
         {interviewDetail && (
           <div className="text-sm font-mono text-primary">
             ⏱
             {
               <Countdown
-                onComplete={() => {
-                  toast.success("Timeout, Interview submited")
-                  vapi.stop()
-                  router.push("/dashboard")
-                }}
+                onComplete={handleTimeUp}
                 key={interviewDetail?.duration}
-                date={
-                  Date.now() + Number(interviewDetail?.duration) * 1000 * 60
-                }
+                date={Date.now() + Number(interviewDetail?.duration) * 1000 * 60}
               />
             }
           </div>
@@ -131,34 +227,40 @@ export default function InterviewRoom() {
       </div>
 
       {/* Video Section */}
-      <div className="flex-1 flex justify-center items-center gap-6 px-4 ">
+      <div className="flex-1 flex justify-center items-center gap-6 px-4 w-full max-w-4xl">
         {/* AI Interviewer */}
-        <div className=" flex-col border shadow  h-[300px] flex items-center justify-center w-[400px] rounded-md ">
-          <div className=" size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full">
-            <p className=" text-xl">AI</p>
+        <div
+          className={`flex-col border shadow h-[300px] flex items-center justify-center w-[400px] rounded-md transition-all duration-300 ${aiSpeaking ? "ring-4 ring-green-400 scale-105" : ""}`}
+        >
+          <div className={`size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full ${aiSpeaking ? "animate-pulse" : ""}`}>
+            <p className="text-xl">AI</p>
           </div>
           <span className="mt-2 text-sm text-primary">Ai Assistant</span>
+          {aiSpeaking && <span className="mt-2 text-xs text-green-500">Speaking...</span>}
         </div>
 
         {/* You */}
-        <div className=" flex-col border shadow  h-[300px] flex items-center justify-center w-[400px] rounded-md ">
-          <div className=" size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full">
-            <p className=" text-xl">{name?.split("")?.[0]}</p>
+        <div
+          className={`flex-col border shadow h-[300px] flex items-center justify-center w-[400px] rounded-md transition-all duration-300 ${userSpeaking ? "ring-4 ring-blue-400 scale-105" : ""}`}
+        >
+          <div className={`size-10 flex justify-center items-center bg-primary text-white uppercase rounded-full ${userSpeaking ? "animate-pulse" : ""}`}>
+            <p className="text-xl">{name?.split("")?.[0]}</p>
           </div>
           <span className="mt-2 text-sm text-primary">You</span>
+          {userSpeaking && <span className="mt-2 text-xs text-blue-500">Speaking...</span>}
         </div>
       </div>
 
       {/* Footer */}
       <div className="flex flex-col items-center mt-4 pb-8">
         <div className="flex gap-6 mb-4">
-          <button className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center hover:bg-gray-600">
+          <span className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center hover:bg-gray-600">
             <Mic size={20} />
-          </button>
+          </span>
           <Alert handleEndCall={() => handleEndCall()}>
-            <button className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 cursor-pointer">
+            <span className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 cursor-pointer">
               <PhoneOff size={20} />
-            </button>
+            </span>
           </Alert>
 
           <button

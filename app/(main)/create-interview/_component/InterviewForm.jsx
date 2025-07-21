@@ -138,7 +138,8 @@ export default function InterviewForm({
                     key={type.value}
                     variant={isSelected ? "default" : "outline"}
                     className="cursor-pointer"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault()
                       let newSelectedTypes;
                       if (isSelected) {
                         newSelectedTypes = values.selectedTypes.filter(

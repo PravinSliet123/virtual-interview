@@ -9,28 +9,27 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  userId    String       @id @default(uuid())
-  email     String       @unique
-  password  String
-  isEnable  Boolean      @default(true)
-  credits   Int          @default(3)
-  profile   String?      @default("")
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  email     String      @unique
+  isEnable  Boolean     @default(true)
+  credits   Int         @default(3)
+  profile   String?     @default("")
   interview Interviews[]
 }
 
 model Interviews {
-  interviewId    String @id @default(uuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   questions      Json
   response       Json?
-  userId         String @db.Text
-  duration       String @db.Text
-  jobPosition    String @db.Text
-  jobDescription String @db.Text
+  userId         String @db.ObjectId
+  duration       String
+  jobPosition    String
+  jobDescription String
   interviewTypes Json
-  user           User   @relation(fields: [userId], references: [userId])
+  user           User?    @relation(fields: [userId], references: [id])
 }

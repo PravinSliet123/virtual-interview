@@ -4,12 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Copy, Clock, ListOrdered, Calendar } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
-export default function InterviewSuccess() {
-  const interviewLink = "https://alcruiter.ai/interview/j8k9m2n3p4";
+export default function InterviewSuccess({ interview }) {
+  if (!interview || !interview.id) {
+    return <div>Loading...</div>;
+  }
 
+  // Construct the public URL
+  const publicUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/interview/${interview.id}`
+      : `/interview/${interview.id}`;
+
+  // WhatsApp and Email share links
+  const whatsappLink = `https://wa.me/?text=${encodeURIComponent(
+    `Check out this interview: ${publicUrl}`
+  )}`;
+  const emailLink = `mailto:?subject=Interview Link&body=${encodeURIComponent(
+    `Check out this interview: ${publicUrl}`
+  )}`;
+
+  // Copy to clipboard functionality
+  const [copied, setCopied] = useState(false);
   const handleCopy = () => {
-    navigator.clipboard.writeText(interviewLink);
+    navigator.clipboard.writeText(publicUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -30,26 +51,23 @@ export default function InterviewSuccess() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Input readOnly value={interviewLink} className="flex-1 text-sm" />
+          <Input readOnly value={publicUrl} className="flex-1 text-sm" />
           <Button onClick={handleCopy} size="sm">
             <Copy className="w-4 h-4 mr-1" />
-            Copy Link
+            {copied ? "Copied!" : "Copy Link"}
           </Button>
         </div>
 
         <div className="flex gap-4 text-sm text-gray-600 pt-2 border-t mt-2">
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            30 Minutes
+            {interview.duration || "-"} Minutes
           </div>
           <div className="flex items-center gap-1">
             <ListOrdered className="w-4 h-4" />
-            10 Questions
+            {interview.questions ? interview.questions.length : "-"} Questions
           </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            Expires: Nov 20, 2025
-          </div>
+          {/* You can add expiry date logic if available in interview */}
         </div>
       </div>
 
@@ -57,9 +75,12 @@ export default function InterviewSuccess() {
       <div className="space-y-2">
         <p className="text-sm font-medium text-left">Share via</p>
         <div className="flex gap-4 justify-center">
-          <Button variant="outline">📧 Email</Button>
-          <Button variant="outline">💬 Slack</Button>
-          <Button variant="outline">🟢 WhatsApp</Button>
+          <a href={emailLink} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline">📧 Email</Button>
+          </a>
+          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline">🟢 WhatsApp</Button>
+          </a>
         </div>
       </div>
 

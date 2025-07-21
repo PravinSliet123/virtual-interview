@@ -29,7 +29,7 @@ function CreateInterview() {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [questionList, setQuestionList] = useState([]);
-  const [inerview, setInterview] = useState({});
+  const [interview, setInterview] = useState({});
   console.log("questionList: ", questionList);
   const [formData, setFormData] = useState({
     jobPosition: "",
@@ -57,21 +57,11 @@ function CreateInterview() {
         },
       })
         .then((res) => {
-          console.log("res: ", res.data.content);
           const FINAL_JSON = res.data.content
             .replace("```json", "")
             .replace("```", "");
           console.log("FINAL_JSON: ", JSON.parse(FINAL_JSON).interviewQuestions);
           setQuestionList(FINAL_JSON);
-
-
-          // questions   Json
-          // response    Json?
-          // userId  String
-          // duration String
-          // jobPosition String
-          // jobDescription String
-          // interviewTypes  Json
 
           axios({
             url: "api/interview",
@@ -94,7 +84,7 @@ function CreateInterview() {
           console.log("err: ", err);
           toast.error("Sever Errro");
           setLoading(false);
-        });
+        })
     } catch (error) {
       setLoading(false);
     }
@@ -117,7 +107,7 @@ function CreateInterview() {
             handleGenerate={handleGenerate}
           />
         ) : (
-          <InterviewSuccess />
+          <InterviewSuccess interview={interview} />
         )}
       </div>
     </div>

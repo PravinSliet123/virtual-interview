@@ -9,14 +9,22 @@ import {
   Facebook,
   Circle,
   Watch,
+  Loader2,
 } from "lucide-react";
 // import SaveUser from "./_component/SaveUser";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
+
 export default function Dashboard() {
   const [interviews, setInterviews] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
+
+  useEffect(() => {
+    // Ensure Clerk user is in DB
+    axios.get("/api/user/profile").catch(() => {});
+  }, []);
 
   // const registerUser = () => {
   //   try {
@@ -41,6 +49,19 @@ export default function Dashboard() {
       });
     } catch (error) {
       toast.error(error?.response?.data?.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    try {
+      await axios.delete(`/api/interview/${id}`);
+      toast.success("Interview deleted successfully");
+      setInterviews((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to delete");
+    } finally {
+      setDeletingId(null);
     }
   };
   useEffect(() => {
@@ -97,7 +118,7 @@ export default function Dashboard() {
                         navigator.clipboard.writeText(
                           window.location.host +
                             "/interview/" +
-                            item?.interviewId
+                            item?.id
                         );
                         toast.success("Link copied successfully");
                       }}
@@ -107,12 +128,25 @@ export default function Dashboard() {
                     >
                       <Copy className="w-4 h-4" /> Copy Link
                     </Button>
-                    <Link className="  cursor-pointer" href={`/interview/${item?.interviewId}`}>
+                    <Link className="  cursor-pointer" href={`/interview/${item?.id}`}>
                       {" "}
                       <Button size="sm" className="gap-1 cursor-pointer">
                         <Watch className="w-4 h-4" /> Start
                       </Button>
                     </Link>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => handleDelete(item.id)}
+                      disabled={deletingId === item.id}
+                    >
+                      {deletingId === item.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <span>Delete</span>
+                      )}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
