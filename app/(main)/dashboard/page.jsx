@@ -16,29 +16,28 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useUserStore } from "@/context/useUser";
+import Loader from "@/components/myComponents/Loader";
 
 export default function Dashboard() {
   const [interviews, setInterviews] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
+  const { user,setUser } = useUserStore((state) => state);
+  const[loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Ensure Clerk user is in DB
-    axios.get("/api/user/profile").catch(() => {});
+    axios.get("/api/user/profile").then((response) => {
+      setUser(response.data?.data)
+      setLoading(false)
+      
+
+    }).catch(_=>{
+      setLoading(false)
+
+    });
   }, []);
 
-  // const registerUser = () => {
-  //   try {
-  //     axios({
-  //       url: "/api/register",
-  //       method: "POST",
-  //       data: {},
-  //     }).then((res) => {
-  //       toast.success(res?.data.message);
-  //     });
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message);
-  //   }
-  // };
   const getAllInterviews = () => {
     try {
       axios({
@@ -70,6 +69,7 @@ export default function Dashboard() {
 
   return (
     <div className="bg-gray-50">
+      {loading&&<Loader/>}
       <main className="p-6 space-y-6">
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
@@ -89,7 +89,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="font-semibold">Create Phone Screening Call</h3>
                 <p className="text-sm text-muted-foreground">
-                  Schedule phone screening calls with potential candidates
+                  Coming Soon
                 </p>
               </div>
             </CardContent>

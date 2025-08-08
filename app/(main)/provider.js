@@ -6,10 +6,13 @@ function DashboardProvider({ children }) {
   return (
     <SidebarProvider>
       <AppSidebar />
+      <SidebarTrigger />
       <main className=" w-full p-4 ">
         <Navbar />
-        <SidebarTrigger />
-        <div className=" py-4 max-h-[calc(100vh-160px)] overflow-y-auto ">{children}</div>
+
+        <div className=" py-4 max-h-[calc(100vh-160px)] overflow-y-auto ">
+          {children}
+        </div>
       </main>
     </SidebarProvider>
   );

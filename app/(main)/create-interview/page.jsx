@@ -1,29 +1,10 @@
 "use client";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { CheckCircle2, Copy, Clock, ListOrdered, Calendar } from "lucide-react";
 import InterviewForm from "./_component/InterviewForm";
 import InterviewSuccess from "./_component/InterviewSuccess";
 import axios from "axios";
 import { toast } from "sonner";
-const interviewTypes = [
-  { label: "Technical", value: "technical" },
-  { label: "Behavioral", value: "behavioral" },
-  { label: "Experience", value: "experience" },
-  { label: "Problem Solving", value: "problem-solving" },
-  { label: "Leadership", value: "leadership" },
-];
 function CreateInterview() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -64,11 +45,21 @@ function CreateInterview() {
             jobDescription: values.jobDescription,
             interviewTypes: values.selectedTypes,
           },
-        }).then((res) => {
-          setInterview(res.data?.data);
-          setStep(step + 1);
-          setLoading(false);
-        });
+        })
+          .then((res) => {
+            setInterview(res.data?.data);
+            setStep(step + 1);
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.log("err: ", err);
+            toast.error(`Error: ${err.response?.data?.message}`, {
+              style: {
+                color: "red",
+              },
+            });
+            setLoading(false);
+          });
       })
       .catch((err) => {
         toast.error("Server Error");
@@ -77,7 +68,7 @@ function CreateInterview() {
   };
   return (
     <div className=" flex justify-center  mx-auto ">
-      <div className="  w-full max-w-[60%]  border rounded-md  p-4 ">
+      <div className="  w-full  md:max-w-[60%]  border rounded-md  p-4 ">
         <Progress className={" w-full "} value={step * 33.333} />
         {step == 1 ? (
           <InterviewForm

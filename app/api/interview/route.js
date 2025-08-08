@@ -33,23 +33,55 @@ export const POST = async (req) => {
     const payload = await req.json();
     const loggedInUser = await prisma.user.findUnique({
       where: {
-        email: user.primaryEmailAddress.emailAddress 
+        email: user.primaryEmailAddress.emailAddress,
       },
     });
-    
+
+    if (loggedInUser.credits === 0) {
+      return NextResponse.json(
+        { message: "Insufficient credits" },
+        { status: 400 }
+      );
+    }
     //console.log('loggedInUser: ', loggedInUser);
-    
-    const interviews = await prisma.interviews.create({
-      data: { ...payload, userId: loggedInUser.id },
+
+    const interview = await prisma.$transaction(async (tx) => {
+      // Step 1: Decrement user's credit
+      const updatedUser = await tx.user.update({
+        where: { id: loggedInUser.id },
+        data: {
+          credits: {
+            decrement: 1,
+          },
+        },
+      });
+
+      // Optional: Check if user had enough credits
+      if (updatedUser.credits < 0) {
+        throw new Error(
+          "Insufficient credits please buy more credits to continue"
+        );
+      }
+
+      // Step 2: Create the interview
+      const createdInterview = await tx.interviews.create({
+        data: {
+          ...payload,
+          userId: loggedInUser.id,
+        },
+      });
+
+      return createdInterview;
     });
 
+    console.log("interview: ", interview);
     return NextResponse.json({
-      data: interviews,
-      messsage: "Interviews fetched successfully",
+      data: interview,
+      message: "Interviews fetched successfully",
     });
   } catch (error) {
     //console.log('error: ', error);
-    
-    return NextResponse.json({ messsage: error }, { status: 500 });
+
+    return NextResponse.json({ message: error }, { status: 500 });
   }
 };

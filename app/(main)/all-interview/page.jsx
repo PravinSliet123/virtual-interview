@@ -1,9 +1,11 @@
-import React from 'react'
+"use client";
+import React, { useEffect } from "react";
 
 function AllInterview() {
-  return (
-    <div>AllInterview</div>
-  )
+ 
+
+  return <div>AllInterview</div>;
 }
 
-export default AllInterview
+export default AllInterview;
+
